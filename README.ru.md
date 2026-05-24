@@ -57,6 +57,7 @@ Backend-приложение для платформы размещения об
 - Java 11
 - Maven
 - PostgreSQL 12+
+- Docker (опционально)
 
 ### Создание базы данных
 
@@ -76,6 +77,15 @@ spring.datasource.password=ваш_пароль
 mvn clean install
 mvn spring-boot:run
 ```
+### Запуск с помощью Docker Compose
+```
+docker-compose up --build
+```
+### Остановить приложение
+```
+docker-compose down
+```
+
 ### После запуска приложение доступно:
 - **API:** http://localhost:8080
 - **Swagger UI:** http://localhost:8080/swagger-ui.html
@@ -124,8 +134,6 @@ http://localhost:8080/swagger-ui.html
 
 ## Возможные улучшения
 - Реализация поиска и фильтрации
-- Настройка Docker Compose (backend + БД + frontend)
-- Добавление CI/CD пайплайна
 
 ---
 
@@ -133,4 +141,4 @@ http://localhost:8080/swagger-ui.html
 
 Шевченко Виктория
 
-Github: https://github.com/ViktorriaShevchenko
+Github: [@ViktorriaShevchenko](https://github.com/ViktorriaShevchenko)
