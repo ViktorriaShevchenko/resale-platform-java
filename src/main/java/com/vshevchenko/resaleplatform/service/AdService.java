@@ -9,6 +9,7 @@ import com.vshevchenko.resaleplatform.dto.ExtendedAd;
 public interface AdService {
 
     Ads getAllAds();
+    Ads getAllAdsPaged(int page, int size, String sortBy, String direction);
     Ads getAdsByUser(String email);
     ExtendedAd getAdById(Integer id);
     Ad createAd(String email, CreateOrUpdateAd createOrUpdateAd, MultipartFile image);

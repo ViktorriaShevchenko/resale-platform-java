@@ -1,11 +1,14 @@
 package com.vshevchenko.resaleplatform.service;
 
+import com.vshevchenko.resaleplatform.dto.Ads;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +23,7 @@ import com.vshevchenko.resaleplatform.mapper.AdMapper;
 import com.vshevchenko.resaleplatform.repository.AdRepository;
 import com.vshevchenko.resaleplatform.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -299,5 +303,121 @@ class AdServiceImplTest {
         verify(imageService).updateImage("/ads/old_image.jpg", newImage, "ad", 100);
         verify(adRepository).save(adEntity);
         assertEquals("/images/ad_100_new.jpg", adEntity.getImage());
+    }
+
+    @Test
+    void getAllAdsPaged_ShouldReturnPagedAds() {
+        // Arrange
+        AdEntity secondAdEntity = new AdEntity();
+        secondAdEntity.setPk(101);
+        secondAdEntity.setTitle("Второе объявление");
+        secondAdEntity.setPrice(1500);
+        secondAdEntity.setDescription("Описание второго объявления");
+        secondAdEntity.setAuthor(author);
+
+        Ad firstAdDto = new Ad();
+        firstAdDto.setPk(100);
+        firstAdDto.setTitle("Тестовое объявление");
+        firstAdDto.setPrice(1000);
+        firstAdDto.setAuthor(1);
+
+        Ad secondAdDto = new Ad();
+        secondAdDto.setPk(101);
+        secondAdDto.setTitle("Второе объявление");
+        secondAdDto.setPrice(1500);
+        secondAdDto.setAuthor(1);
+
+        Pageable pageable = PageRequest.of(0, 2, Sort.by("pk").ascending());
+        Page<AdEntity> page = new PageImpl<>(List.of(adEntity, secondAdEntity), pageable, 5);
+
+        when(adRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(adMapper.toAdDtoList(List.of(adEntity, secondAdEntity)))
+                .thenReturn(List.of(firstAdDto, secondAdDto));
+
+        // Act
+        Ads result = adService.getAllAdsPaged(0, 2, "pk", "asc");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(5, result.getCount());
+        assertEquals(2, result.getResults().size());
+        assertEquals(100, result.getResults().get(0).getPk());
+        assertEquals(101, result.getResults().get(1).getPk());
+
+        verify(adRepository).findAll(any(Pageable.class));
+        verify(adMapper).toAdDtoList(List.of(adEntity, secondAdEntity));
+    }
+
+    @Test
+    void getAllAdsPaged_ShouldPassCorrectPageableToRepository() {
+        // Arrange
+        Page<AdEntity> page = new PageImpl<>(List.of(adEntity));
+        Ad adDto = new Ad();
+        adDto.setPk(100);
+        adDto.setTitle("Тестовое объявление");
+        adDto.setPrice(1000);
+
+        when(adRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(adMapper.toAdDtoList(anyList())).thenReturn(List.of(adDto));
+
+        // Act
+        adService.getAllAdsPaged(1, 3, "price", "desc");
+
+        // Assert
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(adRepository).findAll(pageableCaptor.capture());
+
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertEquals(1, capturedPageable.getPageNumber());
+        assertEquals(3, capturedPageable.getPageSize());
+
+        Sort.Order order = capturedPageable.getSort().getOrderFor("price");
+        assertNotNull(order);
+        assertEquals(Sort.Direction.DESC, order.getDirection());
+    }
+
+    @Test
+    void getAllAdsPaged_WithUnsupportedSortField_ShouldThrowIllegalArgumentException() {
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> adService.getAllAdsPaged(0, 5, "author", "asc")
+        );
+
+        assertEquals("Неподдерживаемое поле сортировки: author", exception.getMessage());
+        verify(adRepository, never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void getAllAdsPaged_WithUnsupportedDirection_ShouldThrowIllegalArgumentException() {
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> adService.getAllAdsPaged(0, 5, "pk", "down")
+        );
+
+        assertEquals("Неподдерживаемое направление сортировки: down", exception.getMessage());
+        verify(adRepository, never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void getAllAdsPaged_WhenPageIsEmpty_ShouldReturnEmptyResults() {
+        // Arrange
+        Pageable pageable = PageRequest.of(10, 5, Sort.by("pk").ascending());
+        Page<AdEntity> emptyPage = new PageImpl<>(List.of(), pageable, 2);
+
+        when(adRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
+        when(adMapper.toAdDtoList(List.of())).thenReturn(List.of());
+
+        // Act
+        Ads result = adService.getAllAdsPaged(10, 5, "pk", "asc");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getCount());
+        assertTrue(result.getResults().isEmpty());
+
+        verify(adRepository).findAll(any(Pageable.class));
+        verify(adMapper).toAdDtoList(List.of());
     }
 }
