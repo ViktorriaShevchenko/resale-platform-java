@@ -1,26 +1,35 @@
 # Resale Platform
 
-Backend-приложение для платформы размещения объявлений (аналог marketplace), реализующее REST API для управления пользователями, объявлениями, комментариями и изображениями.
+[![Java CI](https://github.com/ViktorriaShevchenko/resale-platform-java/actions/workflows/java-ci.yml/badge.svg)](https://github.com/ViktorriaShevchenko/resale-platform-java/actions/workflows/java-ci.yml)
 
-## О проекте
 
-Проект разработан как backend-часть сервиса объявлений с поддержкой аутентификации, ролевой модели доступа и работы с медиа-контентом.
+🇷🇺 [Русская версия](./README.ru.md)
+
+Backend REST API for a resale marketplace (ads + comments + auth).  
+Built with Java, Spring Boot, PostgreSQL, Spring Security, Liquibase.
+
+---
+## About
+
+This is the backend part of an ad posting platform (similar to a marketplace).  
+It provides a REST API for user management, ads, comments, and images with authentication and role-based access control.
 
 ---
 
-## Функциональность
+## Features
 
-- Регистрация и аутентификация пользователей
-- Управление профилем пользователя
-- Создание, редактирование и удаление объявлений
-- Загрузка и хранение изображений
-- Работа с комментариями
-- Ролевая модель доступа (USER / ADMIN)
-- Документация API (Swagger / OpenAPI)
+- User registration and authentication (JWT)
+- Profile management
+- Create, update, and delete ads
+- Paginated and sorted ad listings via dedicated endpoint
+- Image upload and storage
+- Comments on ads
+- Role-based access (USER / ADMIN)
+- OpenAPI / Swagger documentation
 
 ---
 
-## Технологии
+## Tech Stack
 
 - Java 11
 - Spring Boot 2.7.15
@@ -28,9 +37,9 @@ Backend-приложение для платформы размещения об
 - Spring Data JPA
 - Spring Security
 - PostgreSQL
-- H2 (для тестов)
-- Liquibase (миграции БД)
-- MapStruct (маппинг DTO)
+- H2 (for tests)
+- Liquibase (database migrations)
+- MapStruct (DTO mapping)
 - Lombok
 - Springdoc OpenAPI
 - Maven
@@ -38,99 +47,92 @@ Backend-приложение для платформы размещения об
 
 ---
 
-## Архитектура
+## Architecture
 
-Проект построен по классической многослойной архитектуре:
+Layered architecture (Controller → Service → Repository):
 
-- **Controller** — обработка HTTP-запросов
-- **Service** — бизнес-логика
-- **Repository** — работа с базой данных
-- **DTO / Mapper** — преобразование данных между слоями
+- **Controller** – HTTP request handling
+- **Service** – business logic
+- **Repository** – database access
+- **DTO / Mapper** – data transformation
 
 ---
 
-## Запуск проекта
+## Getting Started
 
-### Требования
+### Prerequisites
 
 - Java 11
 - Maven
 - PostgreSQL 12+
 
-### Создание базы данных
+### Create Database
 
 ```sql
 CREATE DATABASE resale_platform_db;
 ```
-### Конфигурация
 
-Укажите параметры подключения к БД в `application.properties`:
+### Configuration
+
+Update application.properties with your database credentials:
 ```
 spring.datasource.url=jdbc:postgresql://localhost:5432/resale_platform_db
-spring.datasource.username=ваш_логин
-spring.datasource.password=ваш_пароль
+spring.datasource.username=your_username
+spring.datasource.password=your_password
 ```
-### Сборка и запуск
+### Build & Run
 ```
 mvn clean install
 mvn spring-boot:run
 ```
-### После запуска приложение доступно:
+### After startup
 - **API:** http://localhost:8080
 - **Swagger UI:** http://localhost:8080/swagger-ui.html
 
 ---
 
-## Frontend
+## Frontend for Local Testing
 
-Frontend предоставляется в виде Docker-образа для локального тестирования.
-
-Запуск:
+A Docker image is available for the frontend:
 ```
 docker run -p 3000:3000 --rm ghcr.io/dmitry-bizin/front-react-avito:v1.21
 ```
 
-После запуска доступен по адресу:
-
-`http://localhost:3000`
+Then open: `http://localhost:3000`
 
 ---
 
-## Тестирование
-
-Для запуска тестов:
+## Testing
 
 ```
 mvn test
 ```
 
-В проекте используются:
+Includes:
 
-- unit-тесты
-- интеграционные тесты
-- тесты безопасности
-- H2 база данных для тестового окружения
+- Unit tests
+- Integration tests
+- Security tests
+- H2 in-memory database for test environment
 
 ---
 
-## Документация API
+## API Documentation
 
-Swagger доступен после запуска:
+Swagger UI is available after running the application:
 
 http://localhost:8080/swagger-ui.html
 
 ---
 
-## Возможные улучшения
-- Добавление пагинации и сортировки объявлений
-- Реализация поиска и фильтрации
-- Настройка Docker Compose (backend + БД + frontend)
-- Добавление CI/CD пайплайна
+## Possible Improvements
+- Search and filtering
+- Docker Compose (backend + database + frontend)
 
 ---
 
-## Автор 
+## Author 
 
-Шевченко Виктория
+Viktorria Shevchenko
 
-Github: https://github.com/ViktorriaShevchenko
+GitHub: [@ViktorriaShevchenko](https://github.com/ViktorriaShevchenko)

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.vshevchenko.resaleplatform.dto.Ad;
@@ -17,6 +18,9 @@ import com.vshevchenko.resaleplatform.dto.CreateOrUpdateAd;
 import com.vshevchenko.resaleplatform.dto.ExtendedAd;
 import com.vshevchenko.resaleplatform.service.AdService;
 import com.vshevchenko.resaleplatform.exception.AdNotFoundException;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 
 /**
  * Контроллер для управления объявлениями.
@@ -36,6 +40,7 @@ import com.vshevchenko.resaleplatform.exception.AdNotFoundException;
 @RequestMapping("/ads")
 @RequiredArgsConstructor
 @Tag(name = "Объявления")
+@Validated
 public class AdsController {
 
     private final AdService adService;
@@ -55,6 +60,34 @@ public class AdsController {
     @GetMapping
     public ResponseEntity<Ads> getAllAds() {
         return ResponseEntity.ok(adService.getAllAds());
+    }
+
+    /**
+     * Получает список объявлений с поддержкой пагинации и сортировки.
+     * <p>
+     * Метод позволяет запрашивать объявления постранично с возможностью указания
+     * размера страницы, номера страницы, поля для сортировки и направления сортировки.
+     * </p>
+     *
+     * @param page номер страницы, начиная с 0
+     * @param size количество элементов на странице
+     * @param sortBy поле для сортировки
+     * @param direction направление сортировки: asc или desc
+     * @return объект Ads с общим количеством объявлений и результатами текущей страницы
+     */
+
+    @Operation(
+            summary = "Получение объявлений с пагинацией и сортировкой",
+            responses = @ApiResponse(responseCode = "200", description = "OK")
+    )
+    @GetMapping("/paged")
+    public ResponseEntity<Ads> getAllAdsPaged(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size,
+            @RequestParam(defaultValue = "pk") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        return ResponseEntity.ok(adService.getAllAdsPaged(page, size, sortBy, direction));
     }
 
     /**

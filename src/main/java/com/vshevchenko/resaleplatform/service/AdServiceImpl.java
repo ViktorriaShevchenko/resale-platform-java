@@ -2,6 +2,10 @@ package com.vshevchenko.resaleplatform.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +23,7 @@ import com.vshevchenko.resaleplatform.repository.AdRepository;
 import com.vshevchenko.resaleplatform.repository.UserRepository;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Реализация сервиса для работы с объявлениями.
@@ -28,13 +33,13 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class AdServiceImpl implements AdService {
 
     private final AdRepository adRepository;
     private final UserRepository userRepository;
     private final AdMapper adMapper;
     private final ImageService imageService;
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("pk", "price", "title");
 
     /**
      * Получает список всех объявлений.
@@ -53,6 +58,63 @@ public class AdServiceImpl implements AdService {
         ads.setResults(adList);
 
         return ads;
+    }
+
+    /**
+     * Получает список всех объявлений с поддержкой пагинации и сортировки.
+     *
+     * @param page номер страницы, начиная с 0
+     * @param size количество элементов на странице
+     * @param sortBy поле для сортировки
+     * @param direction направление сортировки: asc или desc
+     * @return объект Ads, содержащий общее количество объявлений и результаты текущей страницы
+     */
+    @Override
+    public Ads getAllAdsPaged(int page, int size, String sortBy, String direction) {
+        log.info("Получение объявлений с пагинацией. page: {}, size: {}, sortBy: {}, direction: {}",
+                page, size, sortBy, direction);
+
+        validateSortField(sortBy);
+        validateDirection(direction);
+
+        Sort sort = "desc".equalsIgnoreCase(direction)
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<AdEntity> entityPage = adRepository.findAll(pageable);
+
+        List<Ad> adList = adMapper.toAdDtoList(entityPage.getContent());
+
+        Ads ads = new Ads();
+        ads.setCount((int) entityPage.getTotalElements());
+        ads.setResults(adList);
+
+        return ads;
+    }
+
+    /**
+     * Проверяет, разрешено ли указанное поле для сортировки.
+     *
+     * @param sortBy имя поля для проверки
+     * @throws IllegalArgumentException если поле sortBy отсутствует в списке разрешённых
+     */
+    private void validateSortField(String sortBy) {
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
+            throw new IllegalArgumentException("Неподдерживаемое поле сортировки: " + sortBy);
+        }
+    }
+
+    /**
+     * Проверяет корректность направления сортировки.
+     *
+     * @param direction направление сортировки (допустимые значения: asc или desc)
+     * @throws IllegalArgumentException если direction не равен asc или desc
+     */
+    private void validateDirection(String direction) {
+        if (!"asc".equalsIgnoreCase(direction) && !"desc".equalsIgnoreCase(direction)) {
+            throw new IllegalArgumentException("Неподдерживаемое направление сортировки: " + direction);
+        }
     }
 
     /**
