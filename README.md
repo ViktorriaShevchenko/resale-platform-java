@@ -65,6 +65,7 @@ Layered architecture (Controller → Service → Repository):
 - Java 11
 - Maven
 - PostgreSQL 12+
+- Docker (optional)
 
 ### Create Database
 
@@ -85,6 +86,16 @@ spring.datasource.password=your_password
 mvn clean install
 mvn spring-boot:run
 ```
+###  Run with Docker Compose
+```
+docker-compose up --build
+```
+
+### Stop the application
+```
+docker-compose down
+```
+
 ### After startup
 - **API:** http://localhost:8080
 - **Swagger UI:** http://localhost:8080/swagger-ui.html
@@ -127,7 +138,6 @@ http://localhost:8080/swagger-ui.html
 
 ## Possible Improvements
 - Search and filtering
-- Docker Compose (backend + database + frontend)
 
 ---
 
